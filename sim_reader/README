@@ -1,1 +1,67 @@
-read sim data
+project ： SimReader
+Function： read sim data，and register to goip
+
+1、make
+m1: if use in PC, use "make -f Makefile_PC" to compile it; otherwise in MIPS, use "make Makefile"
+
+2、protocol
+m1:preread data，use struct “ST_PREREAD_ROOT”
+m2:tcp protocol，details see the file “TLV protocol”。
+m3:data protocol
+  -if is command,details as follows:
+    typedef struct stSimPoolMsg
+    {
+      _UCHAR8 chn;	
+      _UCHAR8 type;
+      _UCHAR8 value;
+      _UCHAR8 len;
+      _UCHAR8 data[128];
+    }ST_SIMPOOL_MSG;
+    
+  -if is sim data,details as follows:
+    receive package format:
+    typedef struct wrlescccmd
+    {    
+      _USHORT16 cmdIndex;
+      _UCHAR8 cmdLen;
+      _UCHAR8 paramLen;
+      _USHORT16 expRspLen;
+      _USHORT16 PrefixNum;
+      _UCHAR8 PrefixFid[4][2];	
+      _UCHAR8 cmdData[0];
+    }__attribute__((__packed__)) WRLESCCCMDST, *PWRLESCCCMDST;
+    
+    send package format:
+    typedef struct wrlesccrsp
+    {    
+      _USHORT16 rspIndex;
+      _USHORT16 rsplen;
+      _UCHAR8 nextlen;
+      _UCHAR8 nextcmd[5];
+      _UCHAR8 rspdata[0];
+    }__attribute__((__packed__)) WRLESCCRSPST, *PWRLESCCRSPST;
+    
+    
+Example:
+------------------------------------------------------------------------------------------------------------------------------
+command
+*************************************************************************************************************************
+         |  TLV head                | TLV  |  TLV                                                                    |
+receive : 108a1000 202a1044 0001008a 010101 c78084 010000000000000000000000000000000000000000000000000...
+                                                  |  command DATA                                                    |
+*************************************************************************************************************************
+         |  TLV head                | TLV  |  TLV                                                                    |
+send    : 108a9000 202a1044 0001008a 010101 c78084 000100163b9f94801fc78031e073fe211b573786609b30800119 0000...
+                                                  |  respone DATA                                                    |
+-------------------------------------------------------------------------------------------------------------------------------
+simdata
+*************************************************************************************************************************
+         |  TLV head                | TLV  |  TLV                                          |
+receive : 108a1000 208d5504 0009001a 010100 c715 000105000019000200007f2000000000a0c0000016
+                                                |  SIMDATA                                 |
+*************************************************************************************************************************
+         |  TLV head                | TLV  |  TLV                                          |
+send    : 108a9000 208d5504 00020028 010100 c723 00010019000000000000c0000000037f200200000000000a93001a0700838a838a9000
+                                                |  SIMDATA                                                             |
+*************************************************************************************************************************
+    
