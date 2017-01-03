@@ -1,0 +1,21 @@
+TARGET_MAIN = simcom
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:%.c=%.o)
+
+CROSS_COMPILE=
+CC = $(CROSS_COMPILE)gcc
+#INCLUDES = -I/home/noah/build_sqlite3/include
+LIBS = -lrt -lpthread
+CCFLAGS = -g -Wall -O0
+
+all:$(TARGET_MAIN)
+
+$(TARGET_MAIN):$(OBJS)
+	$(CC)  $^ -o $@ $(INCLUDES) $(LIBS)
+
+#$(OBJS):%.o:%.c
+%.o:%.c
+	$(CC) -c $< $(CCFLAGS)
+clean:
+	-rm -f *.o $(TARGET_MAIN)
+
